@@ -1,6 +1,49 @@
-type ExampleEntity @entity {
+# /// @notice Emitted when a user delegates their entire wallet
+# event DelegateForAll(address vault, address delegate, bool value);
+#
+# /// @notice Emitted when a user delegates a specific contract
+# event DelegateForContract(address vault, address delegate, address contract_, bool value);
+#
+# /// @notice Emitted when a user delegates a specific token
+# event DelegateForToken(address vault, address delegate, address contract_, uint256 tokenId, bool value);
+#
+# /// @notice Emitted when a user revokes all delegations
+# event RevokeAllDelegates(address vault);
+#
+# /// @notice Emitted when a user revoes all delegations for a given delegate
+# event RevokeDelegate(address vault, address delegate);
+
+type DelegateForAllEvent @entity {
   id: ID!
-  count: BigInt!
-  vault: Bytes! # address
-  delegate: Bytes! # address
+  vault: Bytes!
+  delegate: Bytes!
+  value: Boolean!
+}
+
+type DelegateForContractEvent @entity {
+  id: ID!
+  vault: Bytes!
+  delegate: Bytes!
+  contract: Bytes!
+  value: Boolean!
+}
+
+type DelegateForTokenEvent @entity {
+  id: ID!
+  vault: Bytes!
+  delegate: Bytes!
+  contract: Bytes!
+  token: BigInt!
+  value: Boolean!
+}
+
+type RevokeAllDelegatesEvent @entity {
+  id: ID!
+  vault: Bytes!
+}
+
+type RevokeDelegateEvent @entity {
+  id: ID!
+  vault: Bytes!
+  delegate: Bytes!
 }

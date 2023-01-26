@@ -1,69 +1,84 @@
-import { BigInt } from "@graphprotocol/graph-ts"
 import {
-  DelegationRegistry,
+  ethereum,
+  crypto,
+  ByteArray,
+} from "@graphprotocol/graph-ts"
+import {
   DelegateForAll,
   DelegateForContract,
   DelegateForToken,
   RevokeAllDelegates,
-  RevokeDelegate
+  RevokeDelegate,
 } from "../generated/DelegationRegistry/DelegationRegistry"
-import { ExampleEntity } from "../generated/schema"
+import {
+  DelegateForAllEvent,
+  DelegateForContractEvent,
+  DelegateForTokenEvent, RevokeAllDelegatesEvent, RevokeDelegateEvent,
+} from "../generated/schema"
 
-export function handleDelegateForAll(event: DelegateForAll): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
-
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.vault = event.params.vault
-  entity.delegate = event.params.delegate
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.checkDelegateForAll(...)
-  // - contract.checkDelegateForContract(...)
-  // - contract.checkDelegateForToken(...)
-  // - contract.getContractLevelDelegations(...)
-  // - contract.getDelegatesForAll(...)
-  // - contract.getDelegatesForContract(...)
-  // - contract.getDelegatesForToken(...)
-  // - contract.getDelegationsByDelegate(...)
-  // - contract.getTokenLevelDelegations(...)
-  // - contract.supportsInterface(...)
+function keccakString(value: string): string {
+  return crypto.keccak256(ByteArray.fromUTF8(value)).toHexString();
 }
 
-export function handleDelegateForContract(event: DelegateForContract): void {}
+function createEventId(eventName: string, event: ethereum.Event): string {
+  return keccakString(`${eventName}:${event.transaction.from.toHex()}:${event.logIndex}`);
+}
 
-export function handleDelegateForToken(event: DelegateForToken): void {}
+export function handleDelegateForAll(event: DelegateForAll): void {
+  const entity = new DelegateForAllEvent(
+    createEventId('DelegateForAll', event)
+  );
 
-export function handleRevokeAllDelegates(event: RevokeAllDelegates): void {}
+  entity.vault = event.params.vault;
+  entity.delegate = event.params.delegate;
+  entity.value = event.params.value;
 
-export function handleRevokeDelegate(event: RevokeDelegate): void {}
+  entity.save();
+}
+
+export function handleDelegateForContract(event: DelegateForContract): void {
+  const entity = new DelegateForContractEvent(
+    createEventId('DelegateForContract', event)
+  );
+
+  entity.vault = event.params.vault;
+  entity.delegate = event.params.delegate;
+  entity.contract = event.params.contract_;
+  entity.value = event.params.value;
+
+  entity.save();
+}
+
+export function handleDelegateForToken(event: DelegateForToken): void {
+  const entity = new DelegateForTokenEvent(
+    createEventId('DelegateForToken', event)
+  );
+
+  entity.vault = event.params.vault;
+  entity.delegate = event.params.delegate;
+  entity.contract = event.params.contract_;
+  entity.token = event.params.tokenId;
+  entity.value = event.params.value;
+
+  entity.save();
+}
+
+export function handleRevokeAllDelegates(event: RevokeAllDelegates): void {
+  const entity = new RevokeAllDelegatesEvent(
+    createEventId('RevokeAllDelegates', event)
+  );
+  entity.vault = event.params.vault;
+
+  entity.save();
+}
+
+export function handleRevokeDelegate(event: RevokeDelegate): void {
+  const entity = new RevokeDelegateEvent(
+    createEventId('RevokeDelegate', event)
+  );
+
+  entity.vault = event.params.vault;
+  entity.delegate = event.params.delegate;
+
+  entity.save();
+}
