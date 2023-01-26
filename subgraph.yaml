@@ -1,0 +1,36 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: DelegationRegistry
+    network: mainnet
+    source:
+      startBlock: 16488381
+      address: "0x00000000000076a84fef008cdabe6409d2fe638b"
+      abi: DelegationRegistry
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - DelegateForAll
+        - DelegateForContract
+        - DelegateForToken
+        - RevokeAllDelegates
+        - RevokeDelegate
+      abis:
+        - name: DelegationRegistry
+          file: ./abis/DelegationRegistry.json
+      eventHandlers:
+        - event: DelegateForAll(address,address,bool)
+          handler: handleDelegateForAll
+        - event: DelegateForContract(address,address,address,bool)
+          handler: handleDelegateForContract
+        - event: DelegateForToken(address,address,address,uint256,bool)
+          handler: handleDelegateForToken
+        - event: RevokeAllDelegates(address)
+          handler: handleRevokeAllDelegates
+        - event: RevokeDelegate(address,address)
+          handler: handleRevokeDelegate
+      file: ./src/delegation-registry.ts
